@@ -348,17 +348,18 @@ class Client {
             curl_setopt($curlHandle, CURLOPT_POSTFIELDS, $body);
             curl_setopt($curlHandle, CURLOPT_POST, true);
         }
-        $mhandle = $context->getMHandle($curlHandle);
+        //$mhandle = $context->getMHandle($curlHandle);
 
         // Do all the processing.
-        $running = null;
-        do {
-            curl_multi_exec($mhandle, $running);
-            curl_multi_select($mhandle);
-            usleep(100);
-        } while ($running > 0);
+        //$running = null;
+        //do {
+        //    curl_multi_exec($mhandle, $running);
+        //    curl_multi_select($mhandle);
+        //    usleep(100);
+        // } while ($running > 0);
+        $response = curl_exec($curlHandle);
         $http_status = (int)curl_getinfo($curlHandle, CURLINFO_HTTP_CODE);
-        $response = curl_multi_getcontent($curlHandle);
+        //$response = curl_multi_getcontent($curlHandle);
         $error = curl_error($curlHandle);
         if (!empty($error)) {
             throw new \Exception($error);
@@ -369,9 +370,9 @@ class Client {
         }
 
         $answer = json_decode($response, true);
-        $context->releaseMHandle($curlHandle);
+        //$context->releaseMHandle($curlHandle);
         curl_close($curlHandle);
-
+        
         if ($http_status == 400) {
             throw new AlgoliaException(isset($answer['message']) ? $answer['message'] : "Bad request");
         }
