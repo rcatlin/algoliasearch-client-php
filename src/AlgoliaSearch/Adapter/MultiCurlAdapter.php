@@ -20,11 +20,15 @@ class MultiCurlAdapter extends AbstractAdapter
             return;
         }
 
-        $this->mHandle->close();
+        $this->close();
     }
 
     public function close()
     {
+        if ($this->mHandle === null) {
+            return;
+        }
+
         $this->mHandle->close();
         $this->mHandle = null;
     }
