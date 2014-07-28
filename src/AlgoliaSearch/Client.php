@@ -181,6 +181,9 @@ class Client {
      * @param indexName the name of index
      */
     public function initIndex($indexName) {
+        if (empty($indexName)) {
+            throw new AlgoliaException('Invalid index name: empty string');
+	}
         return new Index($this->context, $this, $indexName);
     }
 
@@ -278,6 +281,8 @@ class Client {
                 $res = $this->adapter->doRequest($context, $method, $host, $path, $params, $data);
                 if ($res !== null)
                     return $res;
+                else
+                    $this->adapter->close(); // Host unreachable or service unavailable
             } catch (AlgoliaException $e) {
                 throw $e;
             } catch (\Exception $e) {
@@ -289,8 +294,6 @@ class Client {
         else
             throw $exception;
     }
-
-    
 }
 
 

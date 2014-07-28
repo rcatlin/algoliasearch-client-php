@@ -10,7 +10,7 @@ class CurlHandle implements HandleInterface
 
     public function __construct(ClientContext $context, $method, $url, $data)
     {
-        $this->cResource = curl_init();
+        $this->init();
         $this->setupResource($context, $method, $url, $data);
     }
 
@@ -61,6 +61,11 @@ class CurlHandle implements HandleInterface
     public function isOpen()
     {
         return ($this->cResource !== null);
+    }
+
+    protected function init()
+    {
+        $this->cResource = curl_init();
     }
 
     protected function setupResource(ClientContext $context, $method, $url, $data)

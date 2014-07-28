@@ -9,7 +9,7 @@ class MultiCurlHandle implements HandleInterface
 
     public function __construct()
     {
-        $this->mResource = curl_multi_init();
+        $this->init();
     }
 
     public function __destruct()
@@ -93,5 +93,10 @@ class MultiCurlHandle implements HandleInterface
     public function isOpen()
     {
         return ($this->mResource !== null);
+    }
+
+    protected function init()
+    {
+        $this->mResource = curl_multi_init();
     }
 }
