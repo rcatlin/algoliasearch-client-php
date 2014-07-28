@@ -55,29 +55,9 @@ class ClientContext {
             shuffle($this->hostsArray);
         }
 
-        $this->curlMHandle = NULL;
         $this->adminAPIKey = NULL;
         $this->endUserIP = NULL;
         $this->rateLimitAPIKey = NULL;
-    }
-
-    function __destruct() {
-        if ($this->curlMHandle != null) {
-            curl_multi_close($this->curlMHandle);
-        }
-    }
-
-    public function getMHandle($curlHandle) {
-        if ($this->curlMHandle == null) {
-            $this->curlMHandle = curl_multi_init();
-        }
-        curl_multi_add_handle($this->curlMHandle, $curlHandle);
-
-        return $this->curlMHandle;
-    }
-
-    public function releaseMHandle($curlHandle) {
-        curl_multi_remove_handle($this->curlMHandle, $curlHandle);
     }
     
     public function setRateLimit($adminAPIKey, $endUserIP, $rateLimitAPIKey) {
