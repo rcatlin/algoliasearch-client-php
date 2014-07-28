@@ -12,7 +12,6 @@ class MultiCurlAdapter extends AbstractAdapter
 
     public function __construct()
     {
-        var_dump('created multi curl handle');
         $this->mHandle = new MultiCurlHandle();
     }
 
