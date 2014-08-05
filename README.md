@@ -3,8 +3,6 @@ Algolia Search API Client for PHP
 
 
 
-
-
 [Algolia Search](http://www.algolia.com) is a search API that provides hosted full-text, numerical and faceted search.
 Algolia’s Search API makes it easy to deliver a great search experience in your apps & websites providing:
 
@@ -19,18 +17,18 @@ Algolia’s Search API makes it easy to deliver a great search experience in you
 
 This PHP client let you easily use the Algolia Search API from your backend. It wraps [Algolia's REST API](http://www.algolia.com/doc/rest_api).
 
-
 [![Build Status](https://travis-ci.org/algolia/algoliasearch-client-php.png?branch=master)](https://travis-ci.org/algolia/algoliasearch-client-php) [![PHP version](https://badge.fury.io/ph/algolia%2Falgoliasearch-client-php.png)](http://badge.fury.io/ph/algolia%2Falgoliasearch-client-php) [![Coverage Status](https://coveralls.io/repos/algolia/algoliasearch-client-php/badge.png)](https://coveralls.io/r/algolia/algoliasearch-client-php)
 
 
 
 Table of Content
--------------
+================
 **Get started**
 
 1. [Setup](#setup)
 1. [Quick Start](#quick-start)
-1. [Online documentation](#online-documentation)
+1. [Online documentation](#documentation)
+1. [Tutorials](#tutorials)
 
 **Commands reference**
 
@@ -41,7 +39,7 @@ Table of Content
 1. [Delete an object](#delete-an-object)
 1. [Delete by query](#delete-by-query)
 1. [Index settings](#index-settings)
-1. [List indexes](#list-indexes)
+1. [List indices](#list-indices)
 1. [Delete an index](#delete-an-index)
 1. [Clear an index](#clear-an-index)
 1. [Wait indexing](#wait-indexing)
@@ -62,20 +60,24 @@ To setup your project, follow these steps:
 
 
 
- 1. Use [Composer](https://getcomposer.org/doc/00-intro.md) to manage your `algoliasearch` dependency (if you don't use Composer, you can copy the `algoliasearch.php` file and the `resources` directory to your project).
+ 1. Use [Composer](https://getcomposer.org/doc/00-intro.md) to manage your `algoliasearch` dependency (if you don't use Composer, you can copy the `algoliasearch.php` file and the `src` and `resources` directories to your project).
  2. Add `algolia/algoliasearch-client-php` to your `composer.json` file:
 ```json
   "require": {
-      "algolia/algoliasearch-client-php": "1.2.*"
+      "algolia/algoliasearch-client-php": "1.3.*"
   }
 ```
  3. Initialize the client with your ApplicationID and API-Key. You can find all of them on [your Algolia account](http://www.algolia.com/users/edit).
 
 ```php
-require 'vendor/autoload.php'; // if you don't use Composer: require 'path/to/AlgoliaSearch/Client.php';
+// if you don't use Composer: require_once 'path/to/algoliasearch.php';
 
 $client = new \AlgoliaSearch\Client('YourApplicationID', 'YourAPIKey');
 ```
+
+
+
+
 
 
 
@@ -121,27 +123,62 @@ var_dump($index->search('jim'));
 ```
 
 
+**Notes:** If you are building a web application, you may be more interested in using our [JavaScript client](https://github.com/algolia/algoliasearch-client-js) to perform queries. It brings two benefits:
+  * your users get a better response time by avoiding to go through your servers,
+  * it will offload your servers of unnecessary tasks.
+
+```html
+<script type="text/javascript" src="//path/to/algoliasearch.min.js"></script>
+<script type="text/javascript">
+  var client = new AlgoliaSearch("YourApplicationID", "YourSearchOnlyAPIKey");
+  var index = client.initIndex('YourIndexName');
+
+  function searchCallback(success, content) {
+    if (success) {
+      console.log(content);
+    }
+  }
+
+  // perform query "jim"
+  index.search("jim", searchCallback);
+
+  // the last optional argument can be used to add search parameters
+  index.search("jim", searchCallback, { hitsPerPage: 5, facets: '*', maxValuesPerFacet: 10 });
+</script>
+```
 
 
-Online Documentation
-----------------
 
-Check our [online documentation](http://www.algolia.com/doc):
- * [Initial Import](http://www.algolia.com/doc#InitialImport)
- * [Ranking &amp; Relevance](http://www.algolia.com/doc#RankingRelevance)
- * [Settings](http://www.algolia.com/doc#Settings)
- * [Search](http://www.algolia.com/doc#Search)
- * [Incremental Updates](http://www.algolia.com/doc#IncrementalUpdates)
- * [Reindexing](http://www.algolia.com/doc#Reindexing)
- * [Numeric-Search](http://www.algolia.com/doc#Numeric-Search)
- * [Category-Search](http://www.algolia.com/doc#Category-Search)
- * [Faceting](http://www.algolia.com/doc#Faceting)
- * [Geo-Search](http://www.algolia.com/doc#Geo-Search)
- * [Security](http://www.algolia.com/doc#Security)
- * [Indexing Several Types](http://www.algolia.com/doc#IndexingSeveralTypes)
+
+
+
+Documentation
+================
+
+Check our [online documentation](http://www.algolia.com/doc/guides/php):
+ * [Initial Import](http://www.algolia.com/doc/guides/php#InitialImport)
+ * [Ranking &amp; Relevance](http://www.algolia.com/doc/guides/php#RankingRelevance)
+ * [Indexing](http://www.algolia.com/doc/guides/php#Indexing)
+ * [Search](http://www.algolia.com/doc/guides/php#Search)
+ * [Sorting](http://www.algolia.com/doc/guides/php#Sorting)
+ * [Filtering](http://www.algolia.com/doc/guides/php#Filtering)
+ * [Faceting](http://www.algolia.com/doc/guides/php#Faceting)
+ * [Geo-Search](http://www.algolia.com/doc/guides/php#Geo-Search)
+ * [Security](http://www.algolia.com/doc/guides/php#Security)
  * [REST API](http://www.algolia.com/doc/rest)
 
+Tutorials
+================
 
+Check our [tutorials](http://www.algolia.com/doc/tutorials):
+ * [Searchbar with auto-completion](http://www.algolia.com/doc/tutorials/auto-complete)
+ * [Searchbar with multi-categories auto-completion](http://www.algolia.com/doc/tutorials/multi-auto-complete)
+ * [Instant-search](http://www.algolia.com/doc/tutorials/instant-search)
+
+
+
+Commands reference
+==================
 
 
 
@@ -202,7 +239,11 @@ $index->partialUpdateObject(array("city" => "San Francisco",
 
 Search
 -------------
- **Opening note:** If you are building a web application, you may be more interested in using our [javascript client](https://github.com/algolia/algoliasearch-client-js) to send queries. It brings two benefits: (i) your users get a better response time by avoiding to go through your servers, and (ii) it will offload your servers of unnecessary tasks.
+
+**Opening note:** If you are building a web application, you may be more interested in using our [javascript client](https://github.com/algolia/algoliasearch-client-js) to send queries. It brings two benefits:
+  * your users get a better response time by avoiding to go through your servers,
+  * and it will offload your servers of unnecessary tasks.
+
 
 To perform a search, you just need to initialize the index and perform a call to the search function.
 
@@ -221,6 +262,7 @@ You can use the following optional arguments:
  * **minWordSizefor1Typo**: the minimum number of characters in a query word to accept one typo in this word.<br/>Defaults to 3.
  * **minWordSizefor2Typos**: the minimum number of characters in a query word to accept two typos in this word.<br/>Defaults to 7.
  * **allowTyposOnNumericTokens**: if set to false, disable typo-tolerance on numeric tokens (numbers). Default to true.
+ * **restrictSearchableAttributes** List of attributes you want to use for textual search (must be a subset of the `attributesToIndex` index setting). Attributes are separated with a comma (for example `"name,address"`), you can also use a JSON string array encoding (for example encodeURIComponent("[\"name\",\"address\"]")). By default, all attributes specified in `attributesToIndex` settings are used to search.
  * **advancedSyntax**: Enable the advanced query syntax. Defaults to 0 (false).
     * **Phrase query**: a phrase query defines a particular sequence of terms. A phrase query is build by Algolia's query parser for words surrounded by `"`. For example, `"search engine"` will retrieve records having `search` next to `engine` only. Typo-tolerance is _disabled_ on phrase queries.
     * **Prohibit operator**: The prohibit operator excludes records that contain the term after the `-` symbol. For example `search -engine` will retrieve records containing `search` but not `engine`.
@@ -237,6 +279,10 @@ You can use the following optional arguments:
 #### Geo-search parameters
 
  * **aroundLatLng**: search for entries around a given latitude/longitude (specified as two floats separated by a comma).<br/>For example `aroundLatLng=47.316669,5.016670`).<br/>You can specify the maximum distance in meters with the **aroundRadius** parameter (in meters) and the precision for ranking with **aroundPrecision** (for example if you set aroundPrecision=100, two objects that are distant of less than 100m will be considered as identical for "geo" ranking parameter).<br/>At indexing, you should specify geoloc of an object with the `_geoloc` attribute (in the form `{"_geoloc":{"lat":48.853409, "lng":2.348800}}`)
+
+ * **aroundLatLng**: search for entries around a given latitude/longitude (specified as two floats separated by a comma).<br/>For example `aroundLatLng=47.316669,5.016670`).<br/>You can specify the maximum distance in meters with the **aroundRadius** parameter (in meters) and the precision for ranking with **aroundPrecision** (for example if you set aroundPrecision=100, two objects that are distant of less than 100m will be considered as identical for "geo" ranking parameter).<br/>At indexing, you should specify geoloc of an object with the `_geoloc` attribute (in the form `{"_geoloc":{"lat":48.853409, "lng":2.348800}}`)
+
+
  * **insideBoundingBox**: search entries inside a given area defined by the two extreme points of a rectangle (defined by 4 floats: p1Lat,p1Lng,p2Lat,p2Lng).<br/>For example `insideBoundingBox=47.3165,4.9665,47.3424,5.0201`).<br/>At indexing, you should specify geoloc of an object with the _geoloc attribute (in the form `{"_geoloc":{"lat":48.853409, "lng":2.348800}}`)
 
 #### Parameters to control results content
@@ -407,7 +453,7 @@ For example `"customRanking" => ["desc(population)", "asc(name)"]`
   * **prefixAll**: all query words are interpreted as prefixes,
   * **prefixLast**: only the last word is interpreted as a prefix (default behavior),
   * **prefixNone**: no query word is interpreted as a prefix. This option is not recommended.
- * **slaves**: The list of indexes on which you want to replicate all write operations. In order to get response times in milliseconds, we pre-compute part of the ranking during indexing. If you want to use different ranking configurations depending of the use-case, you need to create one index per ranking configuration. This option enables you to perform write operations only on this index, and to automatically update slave indexes with the same operations.
+ * **slaves**: The list of indices on which you want to replicate all write operations. In order to get response times in milliseconds, we pre-compute part of the ranking during indexing. If you want to use different ranking configurations depending of the use-case, you need to create one index per ranking configuration. This option enables you to perform write operations only on this index, and to automatically update slave indices with the same operations.
 
 #### Query expansion
  * **synonyms**: (array of array of words considered as equals). For example, you may want to retrieve your **black ipad** record when your users are searching for **dark ipad**, even if the **dark** word is not part of the record: so you need to configure **black** as a synonym of **dark**. For example `"synomyms": [ [ "black", "dark" ], [ "small", "little", "mini" ], ... ]`.
@@ -444,9 +490,9 @@ var_dump($settings);
 $index->setSettings(array("customRanking" => array("desc(followers)")));
 ```
 
-List indexes
+List indices
 -------------
-You can list all your indexes with their associated information (number of entries, disk size, etc.) with the `listIndexes` method:
+You can list all your indices with their associated information (number of entries, disk size, etc.) with the `listIndexes` method:
 
 ```php
 var_dump($client->listIndexes());
@@ -545,7 +591,7 @@ $res = $index->batch(array(
 Security / User API Keys
 -------------
 
-The admin API key provides full control of all your indexes. 
+The admin API key provides full control of all your indices. 
 You can also generate user API keys to control security. 
 These API keys can be restricted to a set of operations or/and restricted to a given index.
 
@@ -584,7 +630,7 @@ You can also create an API Key with advanced restrictions:
   Note: If you are sending the query through your servers, you must use the `enableRateLimitForward("TheAdminAPIKey", "EndUserIP", "APIKeyWithRateLimit")` function to enable rate-limit.
 
  * Specify the maximum number of hits this API key can retrieve in one call. Defaults to 0 (unlimited). This parameter can be used to protect you from attempts at retrieving your entire content by massively querying the index.
- * Specify the list of targeted indexes. Defaults to all indexes if empty of blank.
+ * Specify the list of targeted indices, you can target all indices starting by a prefix or finishing by a suffix with the '*' character (for example "dev_*" matches all indices starting by "dev_" and "*_dev" matches all indices finishing by "_dev"). Defaults to all indices if empty of blank.
 
  ```php
 // Creates a new global API key that is valid for 300 seconds

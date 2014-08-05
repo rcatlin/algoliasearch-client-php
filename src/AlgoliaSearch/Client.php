@@ -171,6 +171,9 @@ class Client {
      * @param indexName the name of index
      */
     public function initIndex($indexName) {
+        if (empty($indexName)) {
+            throw new AlgoliaException('Invalid index name: empty string');
+	}
         return new Index($this->context, $this, $indexName);
     }
 
@@ -323,7 +326,7 @@ class Client {
         curl_setopt($curlHandle, CURLOPT_ENCODING, '');
         curl_setopt($curlHandle, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($curlHandle, CURLOPT_SSL_VERIFYHOST, 2);
-        curl_setopt($curlHandle, CURLOPT_CAINFO, __DIR__ . '../resources/ca-bundle.crt');
+        curl_setopt($curlHandle, CURLOPT_CAINFO, __DIR__ . '/../../resources/ca-bundle.crt');
         
         curl_setopt($curlHandle, CURLOPT_URL, $url);
         curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 30);
@@ -366,6 +369,8 @@ class Client {
         }
         if ($http_status === 0 || $http_status === 503) {
             // Could not reach host or service unavailable, try with another one if we have it
+            $context->releaseMHandle($curlHandle);
+            curl_close($curlHandle);
             return null;
         }
 
