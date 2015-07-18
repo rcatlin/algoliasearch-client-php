@@ -28,5 +28,11 @@
 
 require_once 'src/AlgoliaSearch/AlgoliaException.php';
 require_once 'src/AlgoliaSearch/ClientContext.php';
+require_once 'src/AlgoliaSearch/Handle/HandleInterface';
+require_once 'src/AlgoliaSearch/Handle/CurlHandle';
+require_once 'src/AlgoliaSearch/Handle/MultiCurlHandle';
+require_once 'src/AlgoliaSearch/Adapter/AbstractAdapter.php';
+require_once 'src/AlgoliaSearch/Adapter/CurlAdapter.php';
+require_once 'src/AlgoliaSearch/Adapter/MultiCurlAdapter.php';
 require_once 'src/AlgoliaSearch/Client.php';
 require_once 'src/AlgoliaSearch/Index.php';

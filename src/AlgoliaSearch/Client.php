@@ -27,14 +27,17 @@
  */
 namespace AlgoliaSearch;
 
+use AlgoliaSearch\Adapter\CurlAdapter;
+use AlgoliaSearch\Adapter\MultiCurlAdapter;
+
 /**
  * Entry point in the PHP API.
  * You should instantiate a Client object with your ApplicationID, ApiKey and Hosts
  * to start using Algolia Search API
  */
 class Client {
-
     protected $context;
+    protected $adapter;
 
     /*
      * Algolia Search initialization
@@ -42,7 +45,7 @@ class Client {
      * @param apiKey a valid API key for the service
      * @param hostsArray the list of hosts that you have received for the service
      */
-    function __construct($applicationID, $apiKey, $hostsArray = null) {
+    function __construct($applicationID, $apiKey, $hostsArray = null, $multiCurl = true) {
         if ($hostsArray == null) {
             $this->context = new ClientContext($applicationID, $apiKey, array($applicationID . "-1.algolia.io", $applicationID . "-2.algolia.io", $applicationID . "-3.algolia.io"));
         } else {
@@ -54,12 +57,19 @@ class Client {
         if(!function_exists('json_decode')){
             throw new \Exception('AlgoliaSearch requires the JSON PHP extension.');
         }
+
+        if ($multiCurl) {
+            $this->adapter = new MultiCurlAdapter();
+        } else {
+            $this->adapter = new CurlAdapter();
+        }
     }
 
     /*
      * Release curl handle
      */
     function __destruct() {
+        $this->adapter->close();
     }
 
     /*
@@ -268,9 +278,11 @@ class Client {
         $exception = null;
         foreach ($context->hostsArray as &$host) {
             try {
-                $res = $this->doRequest($context, $method, $host, $path, $params, $data);
+                $res = $this->adapter->doRequest($context, $method, $host, $path, $params, $data);
                 if ($res !== null)
                     return $res;
+                else
+                    $this->adapter->close(); // Host unreachable or service unavailable
             } catch (AlgoliaException $e) {
                 throw $e;
             } catch (\Exception $e) {
@@ -281,140 +293,6 @@ class Client {
             throw new AlgoliaException('Hosts unreachable');
         else
             throw $exception;
-    }
-
-    public function doRequest($context, $method, $host, $path, $params, $data) {
-        if (strpos($host, "http") === 0) {
-            $url = $host . $path;
-        } else {
-            $url = "https://" . $host . $path;
-        }
-        if ($params != null && count($params) > 0) {
-            $params2 = array();
-            foreach ($params as $key => $val) {
-                if (is_array($val)) {
-                    $params2[$key] = json_encode($val);
-                } else {
-                    $params2[$key] = $val;
-                }
-            }
-            $url .= "?" . http_build_query($params2);
-            
-        }
-        // initialize curl library
-        $curlHandle = curl_init();
-        //curl_setopt($curlHandle, CURLOPT_VERBOSE, true);
-        if ($context->adminAPIKey == null) {
-            curl_setopt($curlHandle, CURLOPT_HTTPHEADER, array(
-                        'X-Algolia-Application-Id: ' . $context->applicationID,
-                        'X-Algolia-API-Key: ' . $context->apiKey,
-                        'Content-type: application/json'
-                        ));
-        } else {
-             curl_setopt($curlHandle, CURLOPT_HTTPHEADER, array(
-                    'X-Algolia-Application-Id: ' . $context->applicationID,
-                    'X-Algolia-API-Key: ' . $context->adminAPIKey,
-                    'X-Forwarded-For: ' . $context->endUserIP,
-                    'X-Forwarded-API-Key: ' . $context->rateLimitAPIKey,
-                    'Content-type: application/json'
-                    ));
-        }
-        curl_setopt($curlHandle, CURLOPT_USERAGENT, "Algolia for PHP 1.2.2");
-        //Return the output instead of printing it
-        curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curlHandle, CURLOPT_FAILONERROR, true);
-        curl_setopt($curlHandle, CURLOPT_ENCODING, '');
-        curl_setopt($curlHandle, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($curlHandle, CURLOPT_SSL_VERIFYHOST, 2);
-        curl_setopt($curlHandle, CURLOPT_CAINFO, __DIR__ . '/../../resources/ca-bundle.crt');
-        
-        curl_setopt($curlHandle, CURLOPT_URL, $url);
-        curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($curlHandle, CURLOPT_NOSIGNAL, 1); # The problem is that on (Li|U)nix, when libcurl uses the standard name resolver, a SIGALRM is raised during name resolution which libcurl thinks is the timeout alarm.
-        curl_setopt($curlHandle, CURLOPT_FAILONERROR, false);
-
-        if ($method === 'GET') {
-            curl_setopt($curlHandle, CURLOPT_CUSTOMREQUEST, 'GET');
-            curl_setopt($curlHandle, CURLOPT_HTTPGET, true);
-            curl_setopt($curlHandle, CURLOPT_POST, false);
-        } else if ($method === 'POST') {
-            $body = ($data) ? json_encode($data) : '';
-            curl_setopt($curlHandle, CURLOPT_CUSTOMREQUEST, 'POST');
-            curl_setopt($curlHandle, CURLOPT_POST, true);
-            curl_setopt($curlHandle, CURLOPT_POSTFIELDS, $body);
-        } elseif ($method === 'DELETE') {
-            curl_setopt($curlHandle, CURLOPT_CUSTOMREQUEST, 'DELETE');
-            curl_setopt($curlHandle, CURLOPT_POST, false);
-        } elseif ($method === 'PUT') {
-            $body = ($data) ? json_encode($data) : '';
-            curl_setopt($curlHandle, CURLOPT_CUSTOMREQUEST, 'PUT');
-            curl_setopt($curlHandle, CURLOPT_POSTFIELDS, $body);
-            curl_setopt($curlHandle, CURLOPT_POST, true);
-        }
-        $mhandle = $context->getMHandle($curlHandle);
-
-        // Do all the processing.
-        $running = null;
-        do {
-            curl_multi_exec($mhandle, $running);
-            curl_multi_select($mhandle);
-            usleep(100);
-        } while ($running > 0);
-        $http_status = (int)curl_getinfo($curlHandle, CURLINFO_HTTP_CODE);
-        $response = curl_multi_getcontent($curlHandle);
-        $error = curl_error($curlHandle);
-        if (!empty($error)) {
-            throw new \Exception($error);
-        }
-        if ($http_status === 0 || $http_status === 503) {
-            // Could not reach host or service unavailable, try with another one if we have it
-            $context->releaseMHandle($curlHandle);
-            curl_close($curlHandle);
-            return null;
-        }
-
-        $answer = json_decode($response, true);
-        $context->releaseMHandle($curlHandle);
-        curl_close($curlHandle);
-
-        if ($http_status == 400) {
-            throw new AlgoliaException(isset($answer['message']) ? $answer['message'] : "Bad request");
-        }
-        elseif ($http_status === 403) {
-            throw new AlgoliaException(isset($answer['message']) ? $answer['message'] : "Invalid Application-ID or API-Key");
-        }
-        elseif ($http_status === 404) {
-            throw new AlgoliaException(isset($answer['message']) ? $answer['message'] : "Resource does not exist");
-        }
-        elseif ($http_status != 200 && $http_status != 201) {
-            throw new Exception($http_status . ": " . $response);
-        }
-
-        switch (json_last_error()) {
-            case JSON_ERROR_DEPTH:
-                $errorMsg = 'JSON parsing error: maximum stack depth exceeded';
-                break;
-            case JSON_ERROR_CTRL_CHAR:
-                $errorMsg = 'JSON parsing error: unexpected control character found';
-                break;
-            case JSON_ERROR_SYNTAX:
-                $errorMsg = 'JSON parsing error: syntax error, malformed JSON';
-                break;
-            case JSON_ERROR_STATE_MISMATCH:
-                $errorMsg = 'JSON parsing error: underflow or the modes mismatch';
-                break;
-            case (defined('JSON_ERROR_UTF8') ? JSON_ERROR_UTF8 : -1): // PHP 5.3 less than 1.2.2 (Ubuntu 10.04 LTS)
-                $errorMsg = 'JSON parsing error: malformed UTF-8 characters, possibly incorrectly encoded';
-                break;
-            case JSON_ERROR_NONE:
-            default:
-                $errorMsg = null;
-                break;
-        }
-        if ($errorMsg !== null) 
-            throw new AlgoliaException($errorMsg);
-
-        return $answer;
     }
 }
 
